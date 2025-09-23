@@ -1,5 +1,6 @@
 // src/components/Login.tsx
 import React, { useState } from 'react';
+import InteractiveButton from './InteractiveButton';
 import { loginLocal } from '../auth/offlineAuth';
 import { getStudent } from '../utils/db';
 
@@ -8,27 +9,39 @@ export default function Login({ onLogin }: { onLogin: (s:any)=>void }) {
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
 
-  async function handleLogin() {
-    if (!id || !password) { setMsg('ID and password required'); return; }
+  async function attemptLogin() {
+    setMsg('');
+    if (!id.trim() || !password) { setMsg('Enter ID and password'); return; }
     try {
       const ok = await loginLocal(id.trim(), password);
-      if (!ok) { setMsg('Invalid credentials'); return; }
+      if (!ok) { setMsg('Invalid ID or password'); return; }
       const s = await getStudent(id.trim());
-      onLogin({ id: s.id, name: s.name, points: s.points || 0, badges: s.badges || [] });
+      if (!s) { setMsg('User not found'); return; }
+      onLogin({ id: s.id, name: s.name, points: s.points || 0, badges: s.badges || [], avatar: s.avatar || null });
     } catch (err:any) {
       setMsg('Login error: ' + (err?.message || err));
     }
   }
 
   return (
-    <div className="card p-3" style={{maxWidth:480, margin:'0 auto'}}>
-      <h5>Login</h5>
-      <input className="form-control mb-2" placeholder="Student ID" value={id} onChange={e=>setId(e.target.value)} />
-      <input className="form-control mb-2" placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
-      <div className="d-flex gap-2">
-        <button className="btn btn-primary" onClick={handleLogin}>Login</button>
+    <div className="max-w-md mx-auto">
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-3">Login</h3>
+        <p className="text-sm text-slate-500 mb-4">Enter your student ID and password to continue.</p>
+
+        <label className="block text-sm text-slate-600">Student ID</label>
+        <input className="w-full rounded-md border border-slate-200 p-2 mb-3" value={id} onChange={e=>setId(e.target.value)} />
+
+        <label className="block text-sm text-slate-600">Password</label>
+        <input type="password" className="w-full rounded-md border border-slate-200 p-2 mb-4" value={password} onChange={e=>setPassword(e.target.value)} />
+
+        <div className="flex items-center justify-between gap-3">
+          <InteractiveButton variant="primary" onClick={attemptLogin}>Login</InteractiveButton>
+          <button className="text-sm text-slate-500 hover:underline" onClick={()=>alert('Forgot password: please ask your teacher')}>Forgot?</button>
+        </div>
+
+        {msg && <div className="mt-4 text-sm text-red-500">{msg}</div>}
       </div>
-      {msg && <div className="mt-2 text-muted">{msg}</div>}
     </div>
   );
 }

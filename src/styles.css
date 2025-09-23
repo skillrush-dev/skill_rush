@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* QuickFix: stop the right white strip and force safe layout */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;              /* hide any accidental horizontal overflow */
+  background: linear-gradient(to bottom, #f8fffc 0%, #ffffff 60%); /* blend background so stripe not visible */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* enforce box-sizing on all elements to avoid width calc issues */
+*,
+*::before,
+*::after { box-sizing: inherit; }
+
+/* container safe padding so content doesn't touch edges */
+.main-container, .max-w-6xl, main {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ensure images / cards never overflow width */
+img, svg, .card, .interactive-widget {
+  max-width: 100%;
+  height: auto;
+}
+
+/* optional: ensure big components wrap */
+.prevent-overflow {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* keep the vertical scrollbar visible area consistent */
+body::-webkit-scrollbar { width: 12px; }
+body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 999px; }
