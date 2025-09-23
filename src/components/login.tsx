@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import InteractiveButton from './InteractiveButton';
 import { loginLocal } from '../auth/offlineAuth';
-import { getStudent } from '../utils/db';
+import { getStudent, touchLogin } from '../utils/db';
 
-export default function Login({ onLogin }: { onLogin: (s:any)=>void }) {
+export default function Login({ onLogin }: { onLogin: (s:any) => void }) {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
@@ -15,10 +15,23 @@ export default function Login({ onLogin }: { onLogin: (s:any)=>void }) {
     try {
       const ok = await loginLocal(id.trim(), password);
       if (!ok) { setMsg('Invalid ID or password'); return; }
-      const s = await getStudent(id.trim());
-      if (!s) { setMsg('User not found'); return; }
-      onLogin({ id: s.id, name: s.name, points: s.points || 0, badges: s.badges || [], avatar: s.avatar || null });
-    } catch (err:any) {
+
+      // Update streak & lastLogin
+      const updated = await touchLogin(id.trim());
+
+      // Return the updated student profile to the app
+      onLogin({
+        id: updated.id,
+        name: updated.name,
+        points: updated.points || 0,
+        badges: updated.badges || [],
+        avatar: updated.avatar || null,
+        class: updated.class || null,
+        streak: updated.streak || 0,
+        lastLogin: updated.lastLogin || null,
+      });
+    } catch (err: any) {
+      console.error('login error', err);
       setMsg('Login error: ' + (err?.message || err));
     }
   }

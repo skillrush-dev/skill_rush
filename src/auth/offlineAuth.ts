@@ -26,9 +26,9 @@ export async function signupLocal(id: string, name: string, password: string) {
   return student;
 }
 
+
 export async function loginLocal(id: string, password: string) {
   const student = await getStudent(id);
   if (!student) return false;
-  const ok = bcrypt.compareSync(password, student.passwordHash);
-  return ok;
+  return bcrypt.compareSync(password, student.passwordHash);
 }
