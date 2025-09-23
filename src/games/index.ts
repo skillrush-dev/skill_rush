@@ -18,10 +18,17 @@ export const GAMES: GameMeta[] = [
   // { key: 'math', title: 'Math Game', loader: () => import('./MathGame') },
 
   {
-  key: 'hindi',
-  title: 'Hindi Quiz',
-  description: 'Basic Hindi grammar and vocabulary quiz.',
-  loader: () => import('./hindi.tsx') // ensure filename matches exactly (HindiGame.tsx)
-}
+    key: 'hindi',
+    title: 'Hindi Quiz',
+    description: 'Basic Hindi grammar and vocabulary quiz.',
+    loader: () => import('./hindi.tsx') // ensure filename matches exactly (HindiGame.tsx)
+  },
+
+ {
+    key: "fraction",
+    title: "Fraction Bridge",
+    description: "Compose fractions to make target values (bridge puzzle).",
+    loader: () => import("./FractionGame"),
+  },
 
 ];

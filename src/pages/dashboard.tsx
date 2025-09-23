@@ -5,12 +5,13 @@ import SubjectCard from "../components/SubjectCard";
 
 type Props = {
   student: any;
-  onStartGame: (subjectKey: string) => void; // existing game launch hook
+  onStartGame: (gameKey: string) => void; // expects a game key (can be subjectKey or subgameKey)
 };
 
 export default function Dashboard({ student, onStartGame }: Props) {
   const [profile, setProfile] = useState<any | null>(null);
-  const [view, setView] = useState<"main" | "subjects" | "learning">("main");
+  const [view, setView] = useState<"main" | "subjects" | "learning" | "subgames">("main");
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -22,13 +23,17 @@ export default function Dashboard({ student, onStartGame }: Props) {
 
   if (!profile) return <div className="p-6">Loading...</div>;
 
-  // subjects data for Class 6 (teacher names, optional covers)
+  // subjects + optional subgames (maths includes Fraction subgame)
   const subjects = [
     {
       key: "maths",
       title: "Math",
       teacher: "Mr. R. Sahu",
       cover: "/images/math-6.jpg",
+      subgames: [
+        { key: "fraction", title: "Fraction Bridge" }, // Fraction is a subgame in maths
+        // add other maths subgames here
+      ],
     },
     {
       key: "science",
@@ -56,8 +61,8 @@ export default function Dashboard({ student, onStartGame }: Props) {
     },
   ];
 
-  // helper: increment gamesPlayed & then start game
-  async function handleStartGameFromSubject(subjectKey: string) {
+  // increment gamesPlayed and persist profile, then call onStartGame
+  async function startGameAndTrack(gameKey: string) {
     try {
       const updated = {
         ...profile,
@@ -69,18 +74,38 @@ export default function Dashboard({ student, onStartGame }: Props) {
     } catch (err) {
       console.error("Failed to update gamesPlayed", err);
     }
-    onStartGame(subjectKey);
+
+    // finally start the requested game (gameKey should match an entry in your GAMES mapping)
+    onStartGame(gameKey);
+  }
+
+  // Called when user clicks Play on a subject card from the "subjects" view.
+  // If subject has subgames, show subgame chooser, otherwise start the subject-level game.
+  function handlePlaySubject(subjectKey: string) {
+    const subj = subjects.find((s) => s.key === subjectKey);
+    if (!subj) return;
+    if (subj.subgames && subj.subgames.length > 0) {
+      setSelectedSubject(subjectKey);
+      setView("subgames");
+    } else {
+      // start the subject-level game (if you map subjectKey to a game)
+      startGameAndTrack(subjectKey);
+    }
   }
 
   function handleNotes(subjectKey: string) {
-    // TODO: navigate to notes page or open modal
     alert(`Open notes for ${subjectKey} (implement navigation)`);
   }
 
   function handleVideos(subjectKey: string) {
-    // TODO: navigate to videos or open player
     alert(`Open videos for ${subjectKey} (implement navigation)`);
   }
+
+  // Subgame list for the selected subject
+  const selectedSubgames =
+    selectedSubject && subjects.find((s) => s.key === selectedSubject)?.subgames
+      ? subjects.find((s) => s.key === selectedSubject)!.subgames!
+      : [];
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -109,7 +134,6 @@ export default function Dashboard({ student, onStartGame }: Props) {
           <button
             className="px-3 py-2 border rounded-md text-slate-700 bg-white hover:bg-slate-50"
             onClick={async () => {
-              // quick manual refresh of profile
               const s = await getStudent(profile.id);
               setProfile(s || profile);
             }}
@@ -165,7 +189,7 @@ export default function Dashboard({ student, onStartGame }: Props) {
         </div>
       )}
 
-      {/* SUBJECT PICKER (via Play Game button) */}
+      {/* SUBJECT PICKER (Play Game) */}
       {view === "subjects" && (
         <div>
           <h3 className="text-xl font-semibold text-slate-800 mb-4">Choose a Subject to Play</h3>
@@ -177,13 +201,12 @@ export default function Dashboard({ student, onStartGame }: Props) {
                   title={s.title}
                   teacher={s.teacher}
                   cover={s.cover}
-                  onOpen={() => handleStartGameFromSubject(s.key)}
-                  onNotes={() => handleNotes(s.key)}
-                  onVideos={() => handleVideos(s.key)}
+                  onOpen={() => handlePlaySubject(s.key)}
                 />
               </div>
             ))}
           </div>
+
 
           <div className="mt-6">
             <button className="px-4 py-2 bg-slate-500 text-white rounded-lg" onClick={() => setView("main")}>← Back</button>
@@ -191,7 +214,40 @@ export default function Dashboard({ student, onStartGame }: Props) {
         </div>
       )}
 
-      {/* START LEARNING SUBJECT GRID (covers & teacher info + notes/videos) */}
+      {/* SUBGAME CHOOSER (when a subject has subgames) */}
+      {view === "subgames" && selectedSubject && (
+        <div>
+          <h3 className="text-xl font-semibold text-slate-800 mb-4">
+            {subjects.find(s => s.key === selectedSubject)?.title} — Subgames
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {selectedSubgames.map((sg) => (
+              <div key={sg.key} className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
+                <h4 className="text-lg font-semibold text-slate-800 mb-2">{sg.title}</h4>
+                <p className="text-sm text-slate-500 mb-4">Short interactive mini-game.</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg"
+                    onClick={() => startGameAndTrack(sg.key)}
+                  >
+                    Play Game
+                  </button>
+                  <button className="px-3 py-2 border rounded text-slate-700 bg-white" onClick={() => alert('Preview / info (implement)')}>Info</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <button className="px-4 py-2 bg-slate-500 text-white rounded-lg" onClick={() => { setSelectedSubject(null); setView("subjects"); }}>
+              ← Back to Subjects
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* START LEARNING (unchanged) */}
       {view === "learning" && (
         <div>
           <h3 className="text-xl font-semibold text-slate-800 mb-4">Start Learning — Class 6</h3>
@@ -232,7 +288,6 @@ export default function Dashboard({ student, onStartGame }: Props) {
                     </div>
                   </div>
                 </div>
-                {/* title below for accessibility when not hovered */}
               </div>
             ))}
           </div>
