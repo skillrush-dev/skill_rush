@@ -31,4 +31,19 @@ export const GAMES: GameMeta[] = [
     loader: () => import("./FractionGame"),
   },
 
+
+  {
+    key: "number-scramble",
+    title: "Number Scramble",
+    description: "Arrange numbers in ascending order under a time limit.",
+    loader: () => import("./NumberScramble"),
+  },
+
+  {
+    key: "science",
+    title: "Science Quiz",
+    loader: () => import("./ScienceGame"),
+  }
+
+
 ];

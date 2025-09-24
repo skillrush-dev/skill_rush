@@ -33,6 +33,7 @@ export default function Dashboard({ student, onStartGame }: Props) {
       subgames: [
         { key: "fraction", title: "Fraction Bridge" }, // Fraction is a subgame in maths
         // add other maths subgames here
+        { key: "number-scramble", title: "Number Scramble" }, 
       ],
     },
     {

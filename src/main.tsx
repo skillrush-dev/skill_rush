@@ -1,12 +1,20 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import './styles.css';
+// src/main.tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { Toaster } from "sonner";
 
+import "./index.css";
+import "./styles.css";
+import App from "./App";
 
-createRoot(document.getElementById('root')!).render(
+const container = document.getElementById("root");
+if (!container) {
+  throw new Error("Root container not found - make sure there's an element with id='root' in index.html");
+}
+
+createRoot(container).render(
   <StrictMode>
+    <Toaster position="top-right" richColors />
     <App />
-  </StrictMode>,
-)
+  </StrictMode>
+);
