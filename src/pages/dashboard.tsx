@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { getStudent, saveStudent } from "../utils/db";
 import SubjectCard from "../components/SubjectCard";
+import StartLearning from "./StartLearning";
 
 type Props = {
   student: any;
@@ -32,8 +33,7 @@ export default function Dashboard({ student, onStartGame }: Props) {
       cover: "/images/math-6.jpg",
       subgames: [
         { key: "fraction", title: "Fraction Bridge" }, // Fraction is a subgame in maths
-        // add other maths subgames here
-        { key: "number-scramble", title: "Number Scramble" }, 
+        { key: "number-scramble", title: "Number Scramble" },
       ],
     },
     {
@@ -94,8 +94,11 @@ export default function Dashboard({ student, onStartGame }: Props) {
     }
   }
 
+  // NEW: open StartLearning for given subject (Notes)
   function handleNotes(subjectKey: string) {
-    alert(`Open notes for ${subjectKey} (implement navigation)`);
+    // set the chosen subject and switch the dashboard to the learning view
+    setSelectedSubject(subjectKey);
+    setView("learning");
   }
 
   function handleVideos(subjectKey: string) {
@@ -208,7 +211,6 @@ export default function Dashboard({ student, onStartGame }: Props) {
             ))}
           </div>
 
-
           <div className="mt-6">
             <button className="px-4 py-2 bg-slate-500 text-white rounded-lg" onClick={() => setView("main")}>← Back</button>
           </div>
@@ -248,55 +250,69 @@ export default function Dashboard({ student, onStartGame }: Props) {
         </div>
       )}
 
-      {/* START LEARNING (unchanged) */}
+      {/* START LEARNING: show StartLearning component for selectedSubject */}
       {view === "learning" && (
-        <div>
-          <h3 className="text-xl font-semibold text-slate-800 mb-4">Start Learning — Class 6</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-            {subjects.map((s) => (
-              <div key={s.key} className="text-center">
-                <div className="group cursor-pointer inline-block">
-                  <div className="w-36 h-48 rounded-xl overflow-hidden shadow-md transform transition duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105">
-                    <img
-                      src={s.cover || `https://source.unsplash.com/collection/190727/300x400?sig=${s.key}`}
-                      alt={s.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+        <>
+          {/* If selectedSubject is null (e.g., user clicked top "Start Learning"), show subject gallery
+              If selectedSubject is set (user clicked Notes on a subject) render StartLearning for that subject */}
+          {selectedSubject ? (
+            <StartLearning
+              subjectKey={selectedSubject}
+              onClose={() => {
+                setSelectedSubject(null);
+                setView("main");
+              }}
+            />
+          ) : (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-4">Start Learning — Class 6</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                {subjects.map((s) => (
+                  <div key={s.key} className="text-center">
+                    <div className="group cursor-pointer inline-block">
+                      <div className="w-36 h-48 rounded-xl overflow-hidden shadow-md transform transition duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105">
+                        <img
+                          src={s.cover || `https://source.unsplash.com/collection/190727/300x400?sig=${s.key}`}
+                          alt={s.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-                  <div className="mt-2">
-                    <div className="text-sm font-semibold text-slate-800">{s.title}</div>
-                    <div className="text-xs text-slate-500">Class 6</div>
-                  </div>
+                      <div className="mt-2">
+                        <div className="text-sm font-semibold text-slate-800">{s.title}</div>
+                        <div className="text-xs text-slate-500">Class 6</div>
+                      </div>
 
-                  <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-250">
-                    <div className="text-xs text-slate-600">Teacher</div>
-                    <div className="text-sm font-medium text-slate-800">{s.teacher}</div>
+                      <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-250">
+                        <div className="text-xs text-slate-600">Teacher</div>
+                        <div className="text-sm font-medium text-slate-800">{s.teacher}</div>
 
-                    <div className="mt-3 flex justify-center gap-2">
-                      <button
-                        onClick={() => handleNotes(s.key)}
-                        className="px-3 py-1 rounded-md bg-white border text-slate-700 text-sm hover:bg-slate-50"
-                      >
-                        Notes
-                      </button>
-                      <button
-                        onClick={() => handleVideos(s.key)}
-                        className="px-3 py-1 rounded-md bg-teal-600 text-white text-sm hover:bg-teal-700"
-                      >
-                        Videos
-                      </button>
+                        <div className="mt-3 flex justify-center gap-2">
+                          <button
+                            onClick={() => handleNotes(s.key)}
+                            className="px-3 py-1 rounded-md bg-white border text-slate-700 text-sm hover:bg-slate-50"
+                          >
+                            Notes
+                          </button>
+                          <button
+                            onClick={() => handleVideos(s.key)}
+                            className="px-3 py-1 rounded-md bg-teal-600 text-white text-sm hover:bg-teal-700"
+                          >
+                            Videos
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="mt-6">
-            <button className="px-4 py-2 bg-slate-500 text-white rounded-lg" onClick={() => setView("main")}>← Back to Dashboard</button>
-          </div>
-        </div>
+              <div className="mt-6">
+                <button className="px-4 py-2 bg-slate-500 text-white rounded-lg" onClick={() => setView("main")}>← Back to Dashboard</button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
